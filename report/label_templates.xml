@@ -1,74 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
-<!--  Contenido de una etiqueta individual, reutilizado en cada celda  -->
-<template id="label_cell_content">
-<div class="label-date">
-<span t-esc="datetime.datetime.now().strftime('%d/%m/%Y')"/>
-</div>
-<div class="label-row">
-<b>LOCALIDAD</b>
-<span t-esc="picking.partner_id.city or ''"/>
-</div>
-<div class="label-row">
-<b>DIRECCION</b>
-<span t-esc="picking.partner_id.street or ''"/>
-<t t-if="picking.partner_id.street2">
-<span t-esc="picking.partner_id.street2"/>
-</t>
-</div>
-<div class="label-reference" t-if="picking.label_reference">
-Referencia (
-<span t-esc="picking.label_reference"/>
-)
-</div>
-<div class="label-row label-recibe">
-<b>RECIBE:</b>
-<span t-esc="picking.partner_id.name or ''"/>
-</div>
-<div class="label-row">
-<b>TELEFONO:</b>
-<span t-esc="picking.partner_id.phone or picking.partner_id.mobile or ''"/>
-</div>
-<div class="label-bulto">
-BULTO
-<span t-esc="bulto_num"/>
-/
-<span t-esc="total_bultos"/>
-</div>
-<div class="label-notes"> Notas </div>
-</template>
-<template id="report_shipping_labels_document">
-<t t-call="web.basic_layout">
-<t t-set="o_font_family" t-value="'Arial, sans-serif'"/>
-<style> .labels-page { page-break-after: always; width: 100%; } .labels-page:last-child { page-break-after: avoid; } .labels-table { width: 100%; border-collapse: separate; border-spacing: 4mm; table-layout: fixed; } .labels-table tr { page-break-inside: avoid; } .label-cell { width: 50%; height: 130mm; vertical-align: top; border: 1px dashed #999999; padding: 10px 12px; box-sizing: border-box; font-family: Arial, sans-serif; font-size: 11px; color: #000000; } .label-cell-empty { border: none; } .label-date { text-align: right; font-size: 10px; color: #333333; } .label-row { margin-top: 3px; } .label-row b { margin-right: 4px; } .label-reference { margin-top: 4px; font-style: italic; font-size: 10px; } .label-recibe { margin-top: 10px; } .label-bulto { margin-top: 20px; text-align: center; font-weight: bold; font-size: 13px; border-top: 1px solid #cccccc; padding-top: 6px; } .label-notes { margin-top: 6px; font-size: 10px; color: #666666; border-top: 1px dotted #cccccc; padding-top: 4px; min-height: 18px; } </style>
-<t t-foreach="docs" t-as="picking">
-<t t-set="total_bultos" t-value="picking.label_bultos_count or 1"/>
-<t t-set="bulto_numbers" t-value="list(range(1, total_bultos + 1))"/>
-<t t-set="pages" t-value="[bulto_numbers[i:i + 4] for i in range(0, len(bulto_numbers), 4)]"/>
-<t t-foreach="pages" t-as="page_group">
-<t t-set="rows" t-value="[page_group[i:i + 2] for i in range(0, len(page_group), 2)]"/>
-<div class="labels-page">
-<table class="labels-table">
-<t t-foreach="rows" t-as="row_pair">
-<tr>
-<t t-foreach="row_pair" t-as="bulto_num">
-<td class="label-cell">
-<t t-call="stock_shipping_labels.label_cell_content">
-<t t-set="picking" t-value="picking"/>
-<t t-set="bulto_num" t-value="bulto_num"/>
-<t t-set="total_bultos" t-value="total_bultos"/>
-</t>
-</td>
-</t>
-<!--  Si la fila quedó con un solo bulto, completar con celda vacía  -->
-<t t-if="len(row_pair) < 2">
-<td class="label-cell label-cell-empty"/>
-</t>
-</tr>
-</t>
-</table>
-</div>
-</t>
-</t>
-</t>
-</template>
+
+    <template id="report_shipping_labels_document">
+        <t t-call="web.basic_layout">
+            <t t-set="o_font_family" t-value="'Arial, sans-serif'"/>
+            <style>
+                .labels-page {
+                    page-break-after: always;
+                    width: 100%;
+                }
+                .labels-page:last-child {
+                    page-break-after: avoid;
+                }
+                .labels-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    grid-template-rows: 1fr 1fr;
+                    grid-gap: 6px;
+                    width: 100%;
+                    height: 277mm;
+                    box-sizing: border-box;
+                }
+                .label-cell {
+                    border: 1px dashed #999999;
+                    border-radius: 4px;
+                    padding: 10px 12px;
+                    box-sizing: border-box;
+                    font-family: Arial, sans-serif;
+                    font-size: 11px;
+                    color: #000000;
+                    display: flex;
+                    flex-direction: column;
+                }
+                .label-date {
+                    text-align: right;
+                    font-size: 10px;
+                    color: #333333;
+                }
+                .label-row {
+                    margin-top: 3px;
+                }
+                .label-row b {
+                    margin-right: 4px;
+                }
+                .label-reference {
+                    margin-top: 4px;
+                    font-style: italic;
+                    font-size: 10px;
+                }
+                .label-recibe {
+                    margin-top: 10px;
+                }
+                .label-bulto {
+                    margin-top: auto;
+                    text-align: center;
+                    font-weight: bold;
+                    font-size: 13px;
+                    border-top: 1px solid #cccccc;
+                    padding-top: 6px;
+                }
+                .label-notes {
+                    margin-top: 6px;
+                    font-size: 10px;
+                    color: #666666;
+                    border-top: 1px dotted #cccccc;
+                    padding-top: 4px;
+                    min-height: 18px;
+                }
+            </style>
+
+            <t t-foreach="docs" t-as="picking">
+                <t t-set="total_bultos" t-value="picking.label_bultos_count or 1"/>
+                <t t-set="bulto_numbers" t-value="list(range(1, total_bultos + 1))"/>
+                <t t-set="pages" t-value="[bulto_numbers[i:i + 4] for i in range(0, len(bulto_numbers), 4)]"/>
+
+                <t t-foreach="pages" t-as="page_group">
+                    <div class="labels-page">
+                        <div class="labels-grid">
+                            <t t-foreach="page_group" t-as="bulto_num">
+                                <div class="label-cell">
+                                    <div class="label-date">
+                                        <span t-esc="datetime.datetime.now().strftime('%d/%m/%Y')"/>
+                                    </div>
+
+                                    <div class="label-row">
+                                        <b>LOCALIDAD</b>
+                                        <span t-esc="picking.partner_id.city or ''"/>
+                                    </div>
+
+                                    <div class="label-row">
+                                        <b>DIRECCION</b>
+                                        <span t-esc="picking.partner_id.street or ''"/>
+                                        <t t-if="picking.partner_id.street2">
+                                            <span t-esc="picking.partner_id.street2"/>
+                                        </t>
+                                    </div>
+
+                                    <div class="label-reference" t-if="picking.label_reference">
+                                        Referencia ( <span t-esc="picking.label_reference"/> )
+                                    </div>
+
+                                    <div class="label-row label-recibe">
+                                        <b>RECIBE:</b>
+                                        <span t-esc="picking.partner_id.name or ''"/>
+                                    </div>
+
+                                    <div class="label-row">
+                                        <b>TELEFONO:</b>
+                                        <span t-esc="picking.partner_id.phone or picking.partner_id.mobile or ''"/>
+                                    </div>
+
+                                    <div class="label-bulto">
+                                        BULTO <span t-esc="bulto_num"/> / <span t-esc="total_bultos"/>
+                                    </div>
+
+                                    <div class="label-notes">
+                                        Notas
+                                    </div>
+                                </div>
+                            </t>
+
+                            <!-- Rellenar celdas vacías si la última página tiene menos de 4 -->
+                            <t t-if="len(page_group) &lt; 4">
+                                <t t-foreach="range(4 - len(page_group))" t-as="empty_cell">
+                                    <div class="label-cell" style="border-style: none;"/>
+                                </t>
+                            </t>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
 </odoo>
