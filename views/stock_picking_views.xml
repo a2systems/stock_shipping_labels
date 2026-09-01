@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_picking_form_inherit_shipping_labels" model="ir.ui.view">
+        <field name="name">stock.picking.form.inherit.shipping.labels</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Botón para imprimir etiquetas, junto a los botones de estado -->
+            <xpath expr="//div[@name='button_box']" position="before">
+                <button name="action_print_shipping_labels"
+                        type="object"
+                        string="Imprimir Etiquetas"
+                        class="oe_highlight"
+                        icon="fa-print"/>
+            </xpath>
+
+            <!-- Campos de configuración de la etiqueta -->
+            <xpath expr="//field[@name='origin']" position="after">
+                <field name="label_bultos_count"/>
+                <field name="label_reference" placeholder="Ej: Es un PH"/>
+            </xpath>
+
+        </field>
+    </record>
+
+</odoo>
